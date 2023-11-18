@@ -60,7 +60,7 @@ class GKS {
         this.ctx.font = "12px Arial";
         this.ctx.fillText("X", this.mapX(this.xmax) - 25, this.mapY(0) - 10);
         this.ctx.fillText("Y", this.mapX(0) + 10, this.mapY(this.ymax) + 15);
-        
+
         // Oznake i crtice na X osi
         let xMaxCanvas = Math.ceil(this.platno.width / (2 * this.skaliranje));
         for (let i = 1; i <= xMaxCanvas; i++) {

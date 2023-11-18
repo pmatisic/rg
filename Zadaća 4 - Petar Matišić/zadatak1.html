@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="hr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Slovo F</title>
+    <script src="MT3D.js"></script>
+    <script src="Persp.js"></script>
+    <script>
+        window.onload = start;
+
+        function start() {
+            var platno = document.getElementById("slika");
+            var udaljenost = 1;
+            persp = new Persp(platno, -25, 25, -25, 25, udaljenost);
+            mt = new MT3D();
+
+            var pomak = 0;
+            var gore = false;
+
+            function rotacija() {
+                persp.pocistiPlatno();
+
+                mt.rotirajY(pretvoriURadijane(0.75));
+
+                if (pomak > 15 && gore == true) {
+                    gore = false;
+                }
+                if (pomak < 1 && gore == false) {
+                    gore = true;
+                }
+
+                function mijenjajUdaljenost() {
+                    if (gore == true) udaljenost = udaljenost + 0.1;
+                    if (gore == false) udaljenost = udaljenost - 0.1;
+                    return udaljenost;
+                }
+
+                if (gore == true) {
+                    pomak = pomak + 0.05;
+                }
+                else {
+                    pomak = pomak - 0.05;
+                }
+                mt.postaviKameru(10, pomak, 10, 1, 8, 1, 1, 1, 1);
+                persp.promijeniUdaljenost(mijenjajUdaljenost());
+                persp.trans(mt);
+
+                nacrtajGrid(persp, 5, "red");
+                nacrtajKocku(persp, "black", 1, 0, 1, 0);
+                nacrtajKocku(persp, "black", 1, 0, 3, 0);
+                nacrtajKocku(persp, "black", 1, 0, 5, 0);
+                nacrtajKocku(persp, "black", 1, 0, 7, 0);
+                nacrtajKocku(persp, "black", 1, 0, 9, 0);
+                nacrtajKocku(persp, "black", 1, 2, 5, 0);
+                nacrtajKocku(persp, "black", 1, 2, 9, 0);
+                nacrtajKocku(persp, "black", 1, 4, 9, 0);
+
+                requestAnimationFrame(rotacija);
+            }
+            rotacija();
+        }
+
+        function nacrtajKocku(persp, boja, a, x = 0, y = 0, z = 0) {
+            persp.koristiBoju(boja);
+
+            persp.postaviNa(x - a, y - a, z + a);
+            persp.linijaDo(x + a, y - a, z + a);
+            persp.povuciLiniju();
+
+            persp.postaviNa(x + a, y - a, z + a);
+            persp.linijaDo(x + a, y + a, z + a);
+            persp.povuciLiniju();
+
+            persp.postaviNa(x + a, y + a, z + a);
+            persp.linijaDo(x - a, y + a, z + a);
+            persp.povuciLiniju();
+
+            persp.postaviNa(x - a, y + a, z + a);
+            persp.linijaDo(x - a, y - a, z + a);
+            persp.povuciLiniju();
+
+            persp.postaviNa(x - a, y - a, z - a);
+            persp.linijaDo(x + a, y - a, z - a);
+            persp.povuciLiniju();
+
+            persp.postaviNa(x + a, y - a, z - a);
+            persp.linijaDo(x + a, y + a, z - a);
+            persp.povuciLiniju();
+
+            persp.postaviNa(x + a, y + a, z - a);
+            persp.linijaDo(x - a, y + a, z - a);
+            persp.povuciLiniju();
+
+            persp.postaviNa(x - a, y + a, z - a);
+            persp.linijaDo(x - a, y - a, z - a);
+            persp.povuciLiniju();
+
+            persp.postaviNa(x - a, y - a, z - a);
+            persp.linijaDo(x - a, y - a, z + a);
+            persp.povuciLiniju();
+
+            persp.postaviNa(x - a, y + a, z - a);
+            persp.linijaDo(x - a, y + a, z + a);
+            persp.povuciLiniju();
+
+            persp.postaviNa(x + a, y - a, z - a);
+            persp.linijaDo(x + a, y - a, z + a);
+            persp.povuciLiniju();
+
+            persp.postaviNa(x + a, y + a, z - a);
+            persp.linijaDo(x + a, y + a, z + a);
+            persp.povuciLiniju();
+        }
+
+        function nacrtajGrid(persp, duljina, boja) {
+            for (let i = -duljina; i < duljina; i++) {
+                for (let j = -duljina; j < duljina; j++) {
+                    persp.koristiBoju(boja);
+
+                    persp.postaviNa(i, 0, j);
+                    persp.linijaDo(i + 1, 0, j);
+                    persp.povuciLiniju();
+
+                    persp.postaviNa(i + 1, 0, j);
+                    persp.linijaDo(i + 1, 0, j + 1);
+                    persp.povuciLiniju();
+
+                    persp.postaviNa(i + 1, 0, j + 1);
+                    persp.linijaDo(i, 0, j + 1);
+                    persp.povuciLiniju();
+
+                    persp.postaviNa(i, 0, j + 1);
+                    persp.linijaDo(i, 0, j);
+                    persp.povuciLiniju();
+                }
+            }
+        }
+
+        function pretvoriURadijane(deg) {
+            return deg * Math.PI / 180;
+        }
+    </script>
+</head>
+
+<body>
+    <h1>Slovo F</h1>
+    <div>
+        <canvas id="slika" width="500" height="500" style="border:5px solid black">
+            Vaš preglednik ne podržava HTML5 canvas.
+        </canvas>
+    </div>
+</body>
+
+</html>

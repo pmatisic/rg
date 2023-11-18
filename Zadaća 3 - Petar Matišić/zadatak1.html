@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="hr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Kocka</title>
+    <script src="MT3D.js"></script>
+    <script src="Ortho.js"></script>
+    <script>
+        window.onload = start;
+
+        function start() {
+            var platno1 = document.getElementById("slika1");
+            this.ortho = new Ortho(platno1, -10, 10, -10, 10);
+            this.mt = new MT3D();
+
+            var x1 = 2;
+            var y1 = -5;
+            var z1 = 2;
+
+            var x2 = -3;
+            var y2 = 5;
+            var z2 = -3;
+
+            var u1 = x2 - x1;
+            var u2 = y2 - y1;
+            var u3 = z2 - z1;
+
+            var rotacija = 0;
+            function rotirajKocku() {
+                this.ortho.pocistiPlatno();
+                this.mt.identitet();
+                this.mt.skaliraj(2, 2, 2);
+                this.ortho.trans(this.mt);
+                this.ortho.postaviNa(x1, y1, z1);
+                this.ortho.linijaDo(x2, y2, z2);
+                this.ortho.postaviBoju("red")
+                this.ortho.povuciLiniju();
+                rotacija++;
+                if (rotacija > 360) {
+                    rotacija = 0;
+                }
+                this.mt.identitet();
+                this.mt.skaliraj(2, 2, 2);
+                this.mt.rotiraj_oko_osi(x1, y1, z1, u1, u2, u3, pretvoriURadijane(rotacija));
+                this.ortho.trans(this.mt);
+                kocka(1, 1, 1, 1, "black");
+                requestAnimationFrame(rotirajKocku);
+            }
+            rotirajKocku();
+        }
+
+        function kocka(xc, yc, zc, a, boja) {
+            this.ortho.postaviBoju(boja);
+
+            this.ortho.postaviNa(xc - a, yc - a, zc + a);
+            this.ortho.linijaDo(xc + a, yc - a, zc + a);
+            this.ortho.povuciLiniju();
+
+            this.ortho.postaviNa(xc + a, yc - a, zc + a);
+            this.ortho.linijaDo(xc + a, yc + a, zc + a);
+            this.ortho.povuciLiniju();
+
+            this.ortho.postaviNa(xc + a, yc + a, zc + a);
+            this.ortho.linijaDo(xc - a, yc + a, zc + a);
+            this.ortho.povuciLiniju();
+
+            this.ortho.postaviNa(xc - a, yc + a, zc + a);
+            this.ortho.linijaDo(xc - a, yc - a, zc + a);
+            this.ortho.povuciLiniju();
+
+            this.ortho.postaviNa(xc - a, yc - a, zc - a);
+            this.ortho.linijaDo(xc + a, yc - a, zc - a);
+            this.ortho.povuciLiniju();
+
+            this.ortho.postaviNa(xc + a, yc - a, zc - a);
+            this.ortho.linijaDo(xc + a, yc + a, zc - a);
+            this.ortho.povuciLiniju();
+
+            this.ortho.postaviNa(xc + a, yc + a, zc - a);
+            this.ortho.linijaDo(xc - a, yc + a, zc - a);
+            this.ortho.povuciLiniju();
+
+            this.ortho.postaviNa(xc - a, yc + a, zc - a);
+            this.ortho.linijaDo(xc - a, yc - a, zc - a);
+            this.ortho.povuciLiniju();
+
+            this.ortho.postaviNa(xc - a, yc - a, zc - a);
+            this.ortho.linijaDo(xc - a, yc - a, zc + a);
+            this.ortho.povuciLiniju();
+
+            this.ortho.postaviNa(xc - a, yc + a, zc - a);
+            this.ortho.linijaDo(xc - a, yc + a, zc + a);
+            this.ortho.povuciLiniju();
+
+            this.ortho.postaviNa(xc + a, yc - a, zc - a);
+            this.ortho.linijaDo(xc + a, yc - a, zc + a);
+            this.ortho.povuciLiniju();
+
+            this.ortho.postaviNa(xc + a, yc + a, zc - a);
+            this.ortho.linijaDo(xc + a, yc + a, zc + a);
+            this.ortho.povuciLiniju();
+        }
+
+        function pretvoriURadijane(deg) {
+            return deg * Math.PI / 180;
+        }
+    </script>
+</head>
+
+<body>
+    <h1>Kocka</h1>
+    <div>
+        <canvas id="slika1" width="500" height="500" style="border:5px solid black">
+            Vaš preglednik ne podržava HTML5 canvas.
+        </canvas>
+    </div>
+</body>
+
+</html>

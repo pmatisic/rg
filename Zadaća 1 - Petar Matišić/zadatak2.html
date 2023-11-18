@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="hr">
+
+<head>
+	<meta charset="UTF-8">
+	<script src="zadatak1.js"></script>
+	<title>GKS Elipsa</title>
+</head>
+
+<body>
+	<h1>GKS Elipsa</h1>
+	<canvas id="canvas1" style="border: 5px solid black">
+		Vaš preglednik ne podržava HTML5 canvas.
+	</canvas>
+	<script>
+		window.onload = function () {
+			var platno1 = document.getElementById("canvas1");
+
+			// Postavljanje dimenzija canvasa
+			platno1.width = 600;
+			platno1.height = 600;
+
+			if (!platno1) alert("Greška - nema platna!");
+
+			let gks = new GKS(platno1, -5, 5, -5, 5);
+
+			function crtaj() {
+				gks.crtajOsi();
+
+				// Crtanje elipse
+				var a = 4,
+					b = 2;
+				gks.koristiBoju("red");
+				gks.postaviNa(a, 0);
+				for (var t = 0; t <= 2 * Math.PI; t += 0.01) {
+					var x = a * Math.cos(t);
+					var y = b * Math.sin(t);
+					gks.linijaDo(x, y);
+				}
+				gks.linijaDo(a, 0);
+				gks.povuciLiniju();
+			}
+
+			crtaj();
+
+			window.addEventListener("resize", function () {
+				crtaj();
+			});
+		};
+	</script>
+</body>
+
+</html>

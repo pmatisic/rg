@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="hr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Leptiri i cvjetovi</title>
+    <script src="GKS.js"></script>
+    <script src="MT2D.js"></script>
+    <script>
+        window.onload = start;
+
+        function start() {
+            var platno1 = document.getElementById("slika1");
+            if (!platno1) alert("Greška - nema platna!");
+            this.gks = new GKS(platno1, -50, 50, -60, 40, 0);
+            this.mt = new MT2D();
+
+            cvijet(gks, "blue");
+
+            this.mt.identitet();
+            this.mt.rotiraj_oko_tocke(0, 0, toRad(120));
+            this.gks.trans(this.mt);
+            cvijet(gks, "blue");
+
+            this.mt.identitet();
+            this.mt.rotiraj_oko_tocke(0, 0, toRad(-120));
+            this.gks.trans(this.mt);
+            cvijet(gks, "blue");
+
+            this.mt.identitet();
+            this.mt.pomakni(40, -5);
+            this.mt.rotiraj_oko_tocke(0, 0, toRad(35));
+            this.mt.skaliraj(2, 1.5);
+            this.gks.trans(this.mt);
+            leptir(gks, "red");
+
+            this.mt.identitet();
+            this.mt.pomakni(-40, -5);
+            this.mt.rotiraj_oko_tocke(0, 0, toRad(-35));
+            this.mt.skaliraj(2, 1.5);
+            this.gks.trans(this.mt);
+            leptir(gks, "red");
+
+            this.mt.identitet();
+            this.mt.pomakni(30, -30);
+            this.mt.rotiraj_oko_tocke(0, 0, toRad(215));
+            this.mt.skaliraj(1.5, 5);
+            this.gks.trans(this.mt);
+            leptir(gks, "black");
+
+            this.mt.identitet();
+            this.mt.pomakni(-30, -30);
+            this.mt.rotiraj_oko_tocke(0, 0, toRad(-215));
+            this.mt.skaliraj(1.5, 5);
+            this.gks.trans(this.mt);
+            leptir(gks, "black");
+        }
+
+        function leptir(gks, boja) {
+            gks.postaviNa(0, 0);
+            for (let t = 0; t < 12 * Math.PI; t = t + 0.01) {
+                x = (Math.pow(Math.E, Math.cos(t)) - (2 * Math.cos(4 * t)) + Math.pow(Math.sin(t / 12), 5)) * Math.sin(t);
+                y = (Math.pow(Math.E, Math.cos(t)) - (2 * Math.cos(4 * t)) + Math.pow(Math.sin(t / 12), 5)) * Math.cos(t);
+                gks.linijaDo(x, y);
+                gks.koristiBoju(boja);
+                gks.povuciLiniju();
+                gks.postaviNa(x, y);
+            }
+        }
+
+        function cvijet(gks, boja) {
+            this.mt.pomakni(0, -30);
+            this.gks.trans(this.mt);
+            gks.postaviNa(0, 0);
+            gks.linijaDo(0, 30);
+            gks.koristiBoju(boja);
+            gks.povuciLiniju();
+
+            this.mt.rotiraj(toRad(22, 5));
+            this.gks.trans(this.mt);
+            for (let a = 1; a < 10; a = a + 1) {
+                gks.postaviNa(a, 0);
+                for (let fi = 0; fi < 2 * Math.PI + 0.1; fi = fi + 0.01) {
+                    r = a * Math.cos(4 * fi);
+                    x = r * Math.cos(fi);
+                    y = r * Math.sin(fi);;
+                    gks.linijaDo(x, y);
+                    gks.koristiBoju(boja);
+                    gks.povuciLiniju();
+                    gks.postaviNa(x, y);
+                }
+            }
+        }
+
+        function toRad(deg) {
+            return deg * Math.PI / 180;
+        }
+    </script>
+</head>
+
+<body>
+    <h1>Leptiri i cvjetovi</h1>
+    <div>
+        <canvas id="slika1" width="500" height="500" style="border:5px solid black">
+            Vaš preglednik ne podržava HTML5 canvas.
+        </canvas>
+    </div>
+</body>
+
+</html>

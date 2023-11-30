@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="hr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Cvijet</title>
+    <script src="RG-WebGL.js"></script>
+    <script src="MT2D.js"></script>
+
+    <script>
+        window.onload = WebGLaplikacija;
+
+        function WebGLaplikacija() {
+            var platno1 = document.getElementById("slika1");
+            gl = platno1.getContext("webgl2");
+            if (!gl) alert("WebGL2 nije dostupan!");
+
+            this.mt = new MT2D();
+
+            GPUprogram1 = pripremiGPUprogram(gl, "vertex-shader", "fragment-shader");
+            gl.useProgram(GPUprogram1);
+
+            GPUprogram1.u_mTrans = gl.getUniformLocation(GPUprogram1, "u_mTrans");
+            GPUprogram1.u_boja = gl.getUniformLocation(GPUprogram1, "u_boja");
+
+            function elipsa(a, b) {
+                var v = [];
+                var c = 0;
+                for (let t = 0; t < 2 * Math.PI; t = t + 0.1) {
+                    x = a * Math.cos(t);
+                    y = b * Math.sin(t);
+                    v[c++] = x;
+                    v[c++] = y;
+                    v[c++] = 0.0;
+                    v[c++] = 0.0;
+                    x = a * Math.cos(t + 0.1);
+                    y = b * Math.sin(t + 0.1);
+                    v[c++] = x;
+                    v[c++] = y;
+                }
+                return v;
+            }
+
+            var vrhovi = [];
+
+            function napuniSpremnike() {
+                spremnikVrhova = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, spremnikVrhova);
+
+                GPUprogram1.a_vrhXYZ = gl.getAttribLocation(GPUprogram1, "a_vrhXYZ");
+                gl.enableVertexAttribArray(GPUprogram1.a_vrhXYZ);
+                gl.vertexAttribPointer(GPUprogram1.a_vrhXYZ, 2, gl.FLOAT, false, 0, 0);
+
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vrhovi), gl.STATIC_DRAW);
+            }
+
+            function nacrtajIzListe(boja) {
+                gl.uniformMatrix3fv(GPUprogram1.u_mTrans, false, this.mt.lista());
+                gl.uniform4fv(GPUprogram1.u_boja, boja);
+                gl.drawArrays(gl.TRIANGLES, 0, vrhovi.length / 2);
+            }
+
+            function iscrtaj() {
+                var xmin = -10;
+                var xmax = 10;
+                var ymin = -10;
+                var ymax = 10;
+
+                gl.clearColor(0, 0.6, 1, 1);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.viewport(0, 0, platno1.width, platno1.height);
+
+                vrhovi = elipsa(1, 1);
+                napuniSpremnike();
+                this.mt.identitet();
+                this.mt.projekcija2Dx(xmin, xmax, ymin, ymax, platno1.width, platno1.height);
+                nacrtajIzListe([1.0, 0.0, 1.0, 1.0]);
+
+                vrhovi = elipsa(3.5, 1.1);
+                napuniSpremnike();
+
+                this.mt.identitet();
+                this.mt.pomakni(5.5, 0);
+                this.mt.projekcija2Dx(xmin, xmax, ymin, ymax, platno1.width, platno1.height);
+                nacrtajIzListe([1.0, 1.0, 0.0, 1.0]);
+
+                for (let i = 0; i < 360; i += 45) {
+                    this.mt.identitet();
+                    this.mt.pomakni(4.5, 0);
+                    this.mt.rotiraj(pretvoriURadijane(i));
+                    this.mt.projekcija2Dx(xmin, xmax, ymin, ymax, platno1.width, platno1.height);
+                    nacrtajIzListe([1.0, 1.0, 0.0, 1.0]);
+                }
+            }
+
+            function pretvoriURadijane(deg) {
+                return deg * Math.PI / 180;
+            }
+
+            iscrtaj();
+        }
+    </script>
+
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        #version 300 es
+        in vec2 a_vrhXYZ;
+        uniform mat3 u_mTrans;
+  
+        void main() {
+          gl_Position = vec4(
+              u_mTrans[0][0] * a_vrhXYZ[0]+u_mTrans[0][1] * a_vrhXYZ[1]+u_mTrans[0][2],
+              u_mTrans[1][0] * a_vrhXYZ[0]+u_mTrans[1][1] * a_vrhXYZ[1]+u_mTrans[1][2],
+              0, 1);
+        }
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+      #version 300 es
+      precision mediump float;
+      uniform vec4 u_boja;
+      out vec4 bojaPiksela;
+  
+      void main() {
+        bojaPiksela = u_boja;
+      }
+    </script>
+</head>
+
+<body>
+    <h1>Cvijet</code></h1>
+    <div>
+        <canvas id="slika1" width="500" height="500" style="border:5px solid black">
+            Vaš preglednik ne podržava HTML5 canvas.
+        </canvas>
+    </div>
+</body>
+
+</html>

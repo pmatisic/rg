@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="hr">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <title>Kocka</title>
+    <script src="RG-WebGL.js"></script>
+    <script src="MT3D.js"></script>
+
+    <script>
+        window.onload = WebGLaplikacija;
+
+        function WebGLaplikacija() {
+            var platno1 = document.getElementById("slika1");
+            gl = platno1.getContext("webgl2");
+            if (!gl) alert("WebGL2 nije dostupan!");
+
+            this.mt = new MT3D();
+
+            GPUprogram1 = pripremiGPUprogram(gl, "vertex-shader", "fragment-shader");
+            gl.useProgram(GPUprogram1);
+            gl.enable(gl.CULL_FACE);
+            gl.cullFace(gl.BACK);
+
+            let a = 0.7;
+            vrhovi = [[a, -a, -a, 1, 0, 0],
+            [a, a, a, 1, 0, 0],
+            [a, a, -a, 1, 0, 0],
+            [a, -a, a, 1, 0, 0],
+            [a, a, a, 1, 0, 0],
+            [a, -a, -a, 1, 0, 0],
+
+            [-a, -a, a, 0, 0, 1],
+            [-a, a, a, 0, 0, 1],
+            [a, a, a, 0, 0, 1],
+            [a, a, a, 0, 0, 1],
+            [a, -a, a, 0, 0, 1],
+            [-a, -a, a, 0, 0, 1],
+
+            [a, a, -a, 1, 0, 1],
+            [-a, -a, -a, 1, 0, 1],
+            [a, -a, -a, 1, 0, 1],
+            [-a, a, -a, 1, 0, 1],
+            [-a, -a, -a, 1, 0, 1],
+            [a, a, -a, 1, 0, 1],
+
+            [a, a, a, 0, 1, 1],
+            [-a, a, -a, 0, 1, 1],
+            [a, a, -a, 0, 1, 1],
+            [-a, a, a, 0, 1, 1],
+            [-a, a, -a, 0, 1, 1],
+            [a, a, a, 0, 1, 1],
+
+            [a, -a, a, 1, 1, 0],
+            [a, -a, -a, 1, 1, 0],
+            [-a, -a, -a, 1, 1, 0],
+            [-a, -a, -a, 1, 1, 0],
+            [-a, -a, a, 1, 1, 0],
+            [a, -a, a, 1, 1, 0],
+
+            [-a, a, a, 0, 1, 0],
+            [-a, -a, a, 0, 1, 0],
+            [-a, -a, -a, 0, 1, 0],
+            [-a, -a, -a, 0, 1, 0],
+            [-a, a, -a, 0, 1, 0],
+            [-a, a, a, 0, 1, 0]];
+
+            function napuniSpremnike() {
+                GPUprogram1.u_mTrans = gl.getUniformLocation(GPUprogram1, "u_mTrans");
+                GPUprogram1.a_vrhXYZ = gl.getAttribLocation(GPUprogram1, "a_vrhXYZ");
+                GPUprogram1.a_boja = gl.getAttribLocation(GPUprogram1, "a_boja");
+
+                spremnikVrhova = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, spremnikVrhova);
+                gl.enableVertexAttribArray(GPUprogram1.a_vrhXYZ);
+                gl.enableVertexAttribArray(GPUprogram1.a_boja);
+                gl.vertexAttribPointer(GPUprogram1.a_vrhXYZ, 3, gl.FLOAT, false, 24, 0);
+                gl.vertexAttribPointer(GPUprogram1.a_boja, 3, gl.FLOAT, false, 24, 12);
+
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vrhovi.flat()), gl.STATIC_DRAW);
+            }
+
+            fiy = 0;
+            fix = 0;
+            fiz = 0;
+            inc = 0.1;
+
+            function iscrtaj() {
+                gl.clearColor(0.5, 0.5, 0.5, 1);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.viewport(0, 0, platno1.width, platno1.height);
+
+                this.mt.identitet();
+                this.mt.rotirajY(pretvoriURadijane(fiy += inc));
+                this.mt.rotirajX(pretvoriURadijane(fix += inc * 2));
+                this.mt.rotirajZ(pretvoriURadijane(fiz += inc * 3));
+                gl.uniformMatrix4fv(GPUprogram1.u_mTrans, false, this.mt.lista());
+                gl.drawArrays(gl.TRIANGLES, 0, vrhovi.length);
+                requestAnimationFrame(iscrtaj);
+            }
+
+            function pretvoriURadijane(deg) {
+                return deg * Math.PI / 180;
+            }
+
+            napuniSpremnike();
+            iscrtaj();
+        }
+    </script>
+
+    <script id="vertex-shader" type="x-shader/x-vertex">
+      #version 300 es
+      in vec3 a_vrhXYZ;
+      in vec3 a_boja;
+      out vec3 v_boja;
+      uniform mat4 u_mTrans;
+
+      void main() {
+        gl_Position = u_mTrans * vec4(a_vrhXYZ,1);
+        v_boja = a_boja;
+      }
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+      #version 300 es
+      precision highp float;
+      in vec3 v_boja;
+      out vec4 bojaPiksela;
+
+      void main() {
+        bojaPiksela = vec4(v_boja, 1);
+      }
+    </script>
+</head>
+
+<body>
+    <h1>Kocka</h1>
+    <div>
+        <canvas id="slika1" width="500" height="500" style="border:5px solid black">
+            Vaš preglednik ne podržava HTML5 canvas.
+        </canvas>
+    </div>
+
+</body>
+
+</html>

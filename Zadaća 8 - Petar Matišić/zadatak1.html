@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="hr">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <title>Slovo F</title>
+    <script src="RG-WebGL.js"></script>
+    <script src="MT3D.js"></script>
+
+    <script>
+        window.onload = WebGLaplikacija;
+
+        function WebGLaplikacija() {
+            var platno1 = document.getElementById("slika1");
+            gl = platno1.getContext("webgl2");
+            if (!gl) alert("WebGL2 nije dostupan!");
+
+            this.mt = new MT3D();
+
+            GPUprogram1 = pripremiGPUprogram(gl, "vertex-shader", "fragment-shader");
+            gl.useProgram(GPUprogram1);
+            gl.enable(gl.DEPTH_TEST);
+
+            let a = 0.1;
+            var vrhoviKocke = [];
+            nacrtajKocku();
+
+            let r = 0.1;
+            var vrhoviKoordOsi = [];
+            drawGrid();
+
+            var c1;
+            var c2;
+            var c3;
+            function nacrtajKocku() {
+                randomColor();
+                vrhoviKocke.push([a, -a, -a, c1, c2, c3],
+                    [a, a, a, c1, c2, c3],
+                    [a, a, -a, c1, c2, c3],
+                    [a, -a, a, c1, c2, c3],
+                    [a, a, a, c1, c2, c3],
+                    [a, -a, -a, c1, c2, c3]);
+
+                randomColor();
+                vrhoviKocke.push([-a, -a, a, c1, c2, c3],
+                    [-a, a, a, c1, c2, c3],
+                    [a, a, a, c1, c2, c3],
+                    [a, a, a, c1, c2, c3],
+                    [a, -a, a, c1, c2, c3],
+                    [-a, -a, a, c1, c2, c3])
+
+                randomColor();
+                vrhoviKocke.push([a, a, -a, c1, c2, c3],
+                    [-a, -a, -a, c1, c2, c3],
+                    [a, -a, -a, c1, c2, c3],
+                    [-a, a, -a, c1, c2, c3],
+                    [-a, -a, -a, c1, c2, c3],
+                    [a, a, -a, c1, c2, c3]);
+
+                randomColor();
+                vrhoviKocke.push([a, a, a, c1, c2, c3],
+                    [-a, a, -a, c1, c2, c3],
+                    [a, a, -a, c1, c2, c3],
+                    [-a, a, a, c1, c2, c3],
+                    [-a, a, -a, c1, c2, c3],
+                    [a, a, a, c1, c2, c3]);
+
+                randomColor();
+                vrhoviKocke.push([a, -a, a, c1, c2, c3],
+                    [a, -a, -a, c1, c2, c3],
+                    [-a, -a, -a, c1, c2, c3],
+                    [-a, -a, -a, c1, c2, c3],
+                    [-a, -a, a, c1, c2, c3],
+                    [a, -a, a, c1, c2, c3]);
+
+                randomColor();
+                vrhoviKocke.push([-a, a, a, c1, c2, c3],
+                    [-a, -a, a, c1, c2, c3],
+                    [-a, -a, -a, c1, c2, c3],
+                    [-a, -a, -a, c1, c2, c3],
+                    [-a, a, -a, c1, c2, c3],
+                    [-a, a, a, c1, c2, c3]);
+            }
+
+            function randomColor() {
+                c1 = Math.random();
+                c2 = Math.random();
+                c3 = Math.random();
+            }
+
+            function drawGrid() {
+                for (let i = 0; i < 19; i++) {
+                    vrhoviKoordOsi.push([-0.9 + i * r, -0.9, 0]);
+                    vrhoviKoordOsi.push([-0.9 + i * r, 0.9, 0]);
+                    vrhoviKoordOsi.push([-0.9, i * r, 0]);
+                    vrhoviKoordOsi.push([-0.9, i * r, 0]);
+
+                    vrhoviKoordOsi.push([i * r, -0.9, 0]);
+                    vrhoviKoordOsi.push([i * r, -0.9, 0]);
+                    vrhoviKoordOsi.push([-0.9, -0.9 + i * r, 0]);
+                    vrhoviKoordOsi.push([0.9, -0.9 + i * r, 0]);
+                }
+            }
+
+            function napuniSpremnike() {
+                GPUprogram1.u_mTrans = gl.getUniformLocation(GPUprogram1, "u_mTrans");
+                GPUprogram1.a_vrhXYZ = gl.getAttribLocation(GPUprogram1, "a_vrhXYZ");
+                GPUprogram1.a_boja = gl.getAttribLocation(GPUprogram1, "a_boja");
+
+                kockaVAO = gl.createVertexArray();
+                gl.bindVertexArray(kockaVAO);
+                gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+                gl.enableVertexAttribArray(GPUprogram1.a_vrhXYZ);
+                gl.enableVertexAttribArray(GPUprogram1.a_boja);
+                gl.vertexAttribPointer(GPUprogram1.a_vrhXYZ, 3, gl.FLOAT, false, 24, 0);
+                gl.vertexAttribPointer(GPUprogram1.a_boja, 3, gl.FLOAT, false, 24, 12);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vrhoviKocke.flat()),
+                    gl.STATIC_DRAW);
+
+                koordOsiVAO = gl.createVertexArray();
+                gl.bindVertexArray(koordOsiVAO);
+                gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+                gl.enableVertexAttribArray(GPUprogram1.a_vrhXYZ);
+                gl.vertexAttribPointer(GPUprogram1.a_vrhXYZ, 3, gl.FLOAT, false, 12, 0);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vrhoviKoordOsi.flat()),
+                    gl.STATIC_DRAW);
+                gl.vertexAttrib3f(GPUprogram1.a_boja, 1, 1, 1);
+            }
+
+            var gore = false;
+            z = 0;
+            r = 8;
+            t = 0;
+            inc = 0.02;
+
+            function iscrtaj() {
+                if (gore) z += 0.05;
+                else z -= 0.05;
+
+                if (z > 5 && gore == true) gore = false;
+                if (z < -5 && gore == false) gore = true;
+
+                x = r * Math.cos(t);
+                y = r * Math.sin(t += inc);
+                gl.clearColor(0, 0, 0, 1);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.viewport(0, 0, platno1.width, platno1.height);
+
+                restart();
+                this.mt.pomakni(-0.4, 0, 0.6);
+                kocka();
+
+                restart();
+                this.mt.rotirajZ(pretvoriURadijane(180));
+                this.mt.pomakni(0.2, 0, 0.6);
+                kocka();
+                this.mt.rotirajZ(pretvoriURadijane(-180));
+
+                restart();
+                this.mt.rotirajY(pretvoriURadijane(180));
+                this.mt.pomakni(0, 0, -0.6);
+                kocka();
+                this.mt.rotirajY(pretvoriURadijane(-180));
+
+                restart();
+                this.mt.rotirajX(pretvoriURadijane(270));
+                this.mt.pomakni(0, -0.8, 0);
+                kocka();
+                this.mt.rotirajX(pretvoriURadijane(-270));
+
+                restart();
+                this.mt.rotirajZ(pretvoriURadijane(90));
+                this.mt.rotirajY(pretvoriURadijane(180));
+                this.mt.pomakni(0, 0.2, -1);
+                kocka();
+                this.mt.rotirajY(pretvoriURadijane(-180));
+                this.mt.rotirajZ(pretvoriURadijane(-90));
+
+                restart();
+                this.mt.rotirajZ(pretvoriURadijane(90));
+                this.mt.rotirajX(pretvoriURadijane(180));
+                this.mt.pomakni(0, 0, -1.0);
+                kocka();
+                this.mt.rotirajX(pretvoriURadijane(-180));
+                this.mt.rotirajZ(pretvoriURadijane(-90));
+
+                restart();
+                this.mt.rotirajY(pretvoriURadijane(270));
+                this.mt.rotirajX(pretvoriURadijane(90));
+                this.mt.pomakni(1.2, 0, 0);
+                kocka();
+                this.mt.rotirajX(pretvoriURadijane(-90));
+                this.mt.rotirajY(pretvoriURadijane(-270));
+
+                restart();
+                this.mt.rotirajZ(pretvoriURadijane(180));
+                this.mt.rotirajX(pretvoriURadijane(90));
+                this.mt.pomakni(0, 1.4, 0);
+                kocka();
+                this.mt.rotirajX(pretvoriURadijane(90));
+                this.mt.rotirajZ(pretvoriURadijane(-180));
+
+                restart();
+                this.mt.pomakni(0, 0, 1.5);
+                gl.uniformMatrix4fv(GPUprogram1.u_mTrans, false, this.mt.lista());
+                gl.bindVertexArray(koordOsiVAO);
+                gl.drawArrays(gl.LINES, 0, vrhoviKoordOsi.length);
+
+                function kocka() {
+                    gl.uniformMatrix4fv(GPUprogram1.u_mTrans, false, this.mt.lista());
+                    gl.bindVertexArray(kockaVAO);
+                    gl.drawArrays(gl.TRIANGLES, 0, vrhoviKocke.length);
+                }
+                function restart() {
+                    this.mt.identitet();
+                    this.mt.persp(1, -1, 1, -1, 4, 20);
+                    this.mt.postaviKameru(x, y, z, 0, 0, 0, 0, 0, 1);
+                }
+                requestAnimationFrame(iscrtaj);
+            }
+
+            function pretvoriURadijane(deg) {
+                return deg * Math.PI / 180;
+            }
+
+            napuniSpremnike();
+            iscrtaj();
+        }
+    </script>
+
+    <script id="vertex-shader" type="x-shader/x-vertex">
+      #version 300 es
+      in vec3 a_vrhXYZ;
+      in vec3 a_boja;
+      out vec3 v_boja;
+      uniform mat4 u_mTrans;
+
+      void main() {
+        gl_Position = u_mTrans * vec4(a_vrhXYZ, 1);
+        v_boja = a_boja;
+      }
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+      #version 300 es
+      precision highp float;
+      in vec3 v_boja;
+      out vec4 bojaPiksela;
+
+      void main() {
+        bojaPiksela = vec4(v_boja, 1);
+      }
+    </script>
+</head>
+
+<body>
+    <h1>Slovo F</h1>
+    <div>
+        <canvas id="slika1" width="500" height="500" style="border:5px solid black">
+            Vaš preglednik ne podržava HTML5 canvas.
+        </canvas>
+    </div>
+
+</body>
+
+</html>

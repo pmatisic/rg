@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="hr">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <title>Kolokvij</title>
+    <script src="RG-WebGL.js"></script>
+    <script src="MT3D.js"></script>
+
+    <script>
+        window.onload = WebGLaplikacija;
+
+        function uRadijane(kut) {
+            return kut * Math.PI / 180;
+        }
+
+        function WebGLaplikacija() {
+            var canvas = document.getElementById("slika1");
+            gl = canvas.getContext("webgl2");
+            if (!gl) alert("WebGL2 nije dostupan!");
+
+            mat = new MT3D();
+
+            GPUprogram1 = pripremiGPUprogram(gl, "vertex-shader", "fragment-shader");
+            gl.useProgram(GPUprogram1);
+            gl.enable(gl.DEPTH_TEST);
+
+            var rotiranje = 360;
+            var pomak = 0.25;
+
+            function dohvatiVrhoveKugle(r, n, polukugla = false, unutarnji = false, R, G, B) {
+                var vrhovi = [];
+                var pomakX, pomakY;
+                pomakX = pomakY = Math.PI / n;
+                if (unutarnji == false) {
+                    for (let theta = 0; polukugla == false ? theta < 2 * Math.PI : theta < Math.PI; theta = theta + pomakY) {
+                        for (let fi = 0; polukugla == false ? fi < 2 * Math.PI : fi < Math.PI; fi = fi + pomakX) {
+                            x = r * Math.cos(fi) * Math.sin(theta);
+                            y = r * Math.sin(fi) * Math.sin(theta);
+                            z = r * Math.cos(theta);
+                            vrhovi.push(x, y, z, x / r, y / r, z / r, R, G, B);
+
+                            x = r * Math.cos(fi + pomakX) * Math.sin(theta + pomakY);
+                            y = r * Math.sin(fi + pomakX) * Math.sin(theta + pomakY);
+                            z = r * Math.cos(theta + pomakY);
+                            vrhovi.push(x, y, z, x / r, y / r, z / r, R, G, B);
+
+                            x = r * Math.cos(fi + pomakX) * Math.sin(theta);
+                            y = r * Math.sin(fi + pomakX) * Math.sin(theta);
+                            z = r * Math.cos(theta);
+                            vrhovi.push(x, y, z, x / r, y / r, z / r, R, G, B);
+
+                            x = r * Math.cos(fi + pomakX) * Math.sin(theta + pomakY);
+                            y = r * Math.sin(fi + pomakX) * Math.sin(theta + pomakY);
+                            z = r * Math.cos(theta + pomakY);
+                            vrhovi.push(x, y, z, x / r, y / r, z / r, R, G, B);
+
+                            x = r * Math.cos(fi) * Math.sin(theta);
+                            y = r * Math.sin(fi) * Math.sin(theta);
+                            z = r * Math.cos(theta);
+                            vrhovi.push(x, y, z, x / r, y / r, z / r, R, G, B);
+
+                            x = r * Math.cos(fi) * Math.sin(theta + pomakY);
+                            y = r * Math.sin(fi) * Math.sin(theta + pomakY);
+                            z = r * Math.cos(theta + pomakY);
+                            vrhovi.push(x, y, z, x / r, y / r, z / r, R, G, B);
+                        }
+                    }
+                }
+                else {
+                    for (let theta = 0; theta < Math.PI; theta = theta + pomakY) {
+                        for (let fi = 0; fi < Math.PI; fi = fi + pomakX) {
+                            x = r * Math.cos(fi + pomakX) * Math.sin(theta + pomakY);
+                            y = r * Math.sin(fi + pomakX) * Math.sin(theta + pomakY);
+                            z = r * Math.cos(theta + pomakY);
+                            vrhovi.push(x, y, z, -x / r, -y / r, -z / r, R, G, B);
+
+                            x = r * Math.cos(fi) * Math.sin(theta);
+                            y = r * Math.sin(fi) * Math.sin(theta);
+                            z = r * Math.cos(theta);
+                            vrhovi.push(x, y, z, -x / r, -y / r, -z / r, R, G, B);
+
+                            x = r * Math.cos(fi + pomakX) * Math.sin(theta);
+                            y = r * Math.sin(fi + pomakX) * Math.sin(theta);
+                            z = r * Math.cos(theta);
+                            vrhovi.push(x, y, z, -x / r, -y / r, -z / r, R, G, B);
+
+                            x = r * Math.cos(fi) * Math.sin(theta);
+                            y = r * Math.sin(fi) * Math.sin(theta);
+                            z = r * Math.cos(theta);
+                            vrhovi.push(x, y, z, -x / r, -y / r, -z / r, R, G, B);
+
+                            x = r * Math.cos(fi + pomakX) * Math.sin(theta + pomakY);
+                            y = r * Math.sin(fi + pomakX) * Math.sin(theta + pomakY);
+                            z = r * Math.cos(theta + pomakY);
+                            vrhovi.push(x, y, z, -x / r, -y / r, -z / r, R, G, B);
+
+                            x = r * Math.cos(fi) * Math.sin(theta + pomakY);
+                            y = r * Math.sin(fi) * Math.sin(theta + pomakY);
+                            z = r * Math.cos(theta + pomakY);
+                            vrhovi.push(x, y, z, -x / r, -y / r, -z / r, R, G, B);
+                        }
+                    }
+                }
+                return vrhovi;
+            }
+
+            function dohvatiVrhoveValjka(r, h, n, R, G, B) {
+                var vrhovi = [];
+                vrhovi.push(0, 0, h / 2, 0, 0, 1, R, G, B);
+                let fi = 2 * Math.PI / n;
+                for (let i = 0; i <= n; i++) {
+                    vrhovi.push(r * Math.cos(fi), r * Math.sin(fi), h / 2, 0, 0, 1, R, G, B);
+                    fi += 2 * Math.PI / n;
+                }
+                vrhovi.push(0, 0, -h / 2, 0, 0, -1, R, G, B);
+                fi = 2 * Math.PI;
+                for (let i = 0; i <= n; i++) {
+                    vrhovi.push(r * Math.cos(fi), r * Math.sin(fi), -h / 2, 0, 0, -1, R, G, B);
+                    fi -= 2 * Math.PI / n;
+                }
+                fi = 0;
+                for (let i = 0; i <= n; i++) {
+                    cos = Math.cos(fi);
+                    sin = Math.sin(fi);
+                    x = r * cos;
+                    y = r * sin;
+                    vrhovi.push(x, y, h / 2, cos, sin, 0, R, G, B);
+                    vrhovi.push(x, y, -h / 2, cos, sin, 0, R, G, B);
+                    fi += 2 * Math.PI / n;
+                }
+                return vrhovi;
+            }
+
+            var vanjskiVrhoviKugla = dohvatiVrhoveKugle(1.5, 20, polukugla = true, unutarnji = false, boja = 0.75, 0.75, 0);
+            var vrhoviUspravniValjak = dohvatiVrhoveValjka(0.5, 2, 20, boja = 0.75, 0.75, 0);
+            var vrhoviLezeciValjak = dohvatiVrhoveValjka(1.5, 4, 20, boja = 0.75, 0.75, 0);
+            var vrhoviPrazniValjak = dohvatiVrhoveValjka(1.5, 0.5, 30, boja = 0.75, 0.75, 0);
+            var vrhoviTankiValjak = dohvatiVrhoveValjka(0.25, 4, 20, boja = 0.75, 0.75, 0);
+
+            function napuniSpremnike() {
+                GPUprogram1.u_mTrans = gl.getUniformLocation(GPUprogram1, "u_mTrans");
+                GPUprogram1.u_izvor = gl.getUniformLocation(GPUprogram1, "u_izvor");
+                GPUprogram1.u_kameraXYZ = gl.getUniformLocation(GPUprogram1, "u_kameraXYZ");
+                GPUprogram1.a_vrhXYZ = gl.getAttribLocation(GPUprogram1, "a_vrhXYZ");
+                GPUprogram1.a_boja = gl.getAttribLocation(GPUprogram1, "a_boja");
+                GPUprogram1.a_normala = gl.getAttribLocation(GPUprogram1, "a_normala");
+
+                VAO_kugla_vanjski = gl.createVertexArray();
+                gl.bindVertexArray(VAO_kugla_vanjski);
+                gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+                gl.enableVertexAttribArray(GPUprogram1.a_vrhXYZ);
+                gl.enableVertexAttribArray(GPUprogram1.a_boja);
+                gl.enableVertexAttribArray(GPUprogram1.a_normala);
+                gl.vertexAttribPointer(GPUprogram1.a_vrhXYZ, 3, gl.FLOAT, false, 36, 0);
+                gl.vertexAttribPointer(GPUprogram1.a_normala, 3, gl.FLOAT, false, 36, 12);
+                gl.vertexAttribPointer(GPUprogram1.a_boja, 3, gl.FLOAT, false, 36, 24);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vanjskiVrhoviKugla), gl.STATIC_DRAW);
+
+                VAO_uspravni_valjak = gl.createVertexArray();
+                gl.bindVertexArray(VAO_uspravni_valjak);
+                gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+                gl.enableVertexAttribArray(GPUprogram1.a_vrhXYZ);
+                gl.enableVertexAttribArray(GPUprogram1.a_boja);
+                gl.enableVertexAttribArray(GPUprogram1.a_normala);
+                gl.vertexAttribPointer(GPUprogram1.a_vrhXYZ, 3, gl.FLOAT, false, 36, 0);
+                gl.vertexAttribPointer(GPUprogram1.a_normala, 3, gl.FLOAT, false, 36, 12);
+                gl.vertexAttribPointer(GPUprogram1.a_boja, 3, gl.FLOAT, false, 36, 24);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vrhoviUspravniValjak), gl.STATIC_DRAW);
+
+                VAO_lezeci_valjak = gl.createVertexArray();
+                gl.bindVertexArray(VAO_lezeci_valjak);
+                gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+                gl.enableVertexAttribArray(GPUprogram1.a_vrhXYZ);
+                gl.enableVertexAttribArray(GPUprogram1.a_boja);
+                gl.enableVertexAttribArray(GPUprogram1.a_normala);
+                gl.vertexAttribPointer(GPUprogram1.a_vrhXYZ, 3, gl.FLOAT, false, 36, 0);
+                gl.vertexAttribPointer(GPUprogram1.a_normala, 3, gl.FLOAT, false, 36, 12);
+                gl.vertexAttribPointer(GPUprogram1.a_boja, 3, gl.FLOAT, false, 36, 24);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vrhoviLezeciValjak), gl.STATIC_DRAW);
+
+                VAO_prazni_valjak = gl.createVertexArray();
+                gl.bindVertexArray(VAO_prazni_valjak);
+                gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+                gl.enableVertexAttribArray(GPUprogram1.a_vrhXYZ);
+                gl.enableVertexAttribArray(GPUprogram1.a_boja);
+                gl.enableVertexAttribArray(GPUprogram1.a_normala);
+                gl.vertexAttribPointer(GPUprogram1.a_vrhXYZ, 3, gl.FLOAT, false, 36, 0);
+                gl.vertexAttribPointer(GPUprogram1.a_normala, 3, gl.FLOAT, false, 36, 12);
+                gl.vertexAttribPointer(GPUprogram1.a_boja, 3, gl.FLOAT, false, 36, 24);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vrhoviPrazniValjak), gl.STATIC_DRAW);
+
+                VAO_tanki_valjak = gl.createVertexArray();
+                gl.bindVertexArray(VAO_tanki_valjak);
+                gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+                gl.enableVertexAttribArray(GPUprogram1.a_vrhXYZ);
+                gl.enableVertexAttribArray(GPUprogram1.a_boja);
+                gl.enableVertexAttribArray(GPUprogram1.a_normala);
+                gl.vertexAttribPointer(GPUprogram1.a_vrhXYZ, 3, gl.FLOAT, false, 36, 0);
+                gl.vertexAttribPointer(GPUprogram1.a_normala, 3, gl.FLOAT, false, 36, 12);
+                gl.vertexAttribPointer(GPUprogram1.a_boja, 3, gl.FLOAT, false, 36, 24);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vrhoviTankiValjak), gl.STATIC_DRAW);
+            }
+
+            function iscrtaj() {
+                gl.clearColor(0, 0, 0, 1);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.viewport(0, 0, canvas.width, canvas.height);
+
+                rotiranje = rotiranje + pomak;
+                if (rotiranje <= 0) rotiranje = 360;
+
+                let a = 2, b = 2, c = -12;
+
+                function polukugla1() {
+                    mat.identitet();
+                    mat.persp(-2, 2, -2, 2, 3, 20);
+                    mat.postaviKameru(5, 5, 5, 0, 0, 0, 0, 0, 1);
+                    mat.rotirajZ(uRadijane(rotiranje));
+                    mat.pomakni(0, -1.95, 1);
+                    mat.rotirajZ(uRadijane(180));
+
+                    gl.uniformMatrix4fv(GPUprogram1.u_mTrans, false, mat.lista());
+                    gl.bindVertexArray(VAO_kugla_vanjski);
+                    gl.uniform3fv(GPUprogram1.u_izvor, [a, b, c]);
+                    gl.drawArrays(gl.TRIANGLES, 0, 2400);
+                }
+
+                function polukugla2() {
+                    mat.identitet();
+                    mat.persp(-2, 2, -2, 2, 3, 20);
+                    mat.postaviKameru(5, 5, 5, 0, 0, 0, 0, 0, 1);
+                    mat.rotirajZ(uRadijane(rotiranje));
+                    mat.pomakni(0, 1.95, 1);
+
+                    gl.uniformMatrix4fv(GPUprogram1.u_mTrans, false, mat.lista());
+                    gl.bindVertexArray(VAO_kugla_vanjski);
+                    gl.uniform3fv(GPUprogram1.u_izvor, [a, b, c]);
+                    gl.drawArrays(gl.TRIANGLES, 0, 2400);
+                }
+
+                function lezeciValjak() {
+                    mat.identitet();
+                    mat.persp(-2, 2, -2, 2, 3, 20);
+                    mat.postaviKameru(5, 5, 5, 0, 0, 0, 0, 0, 1);
+                    mat.rotirajZ(uRadijane(rotiranje));
+                    mat.rotirajX(uRadijane(90));
+                    mat.pomakni(0, 1, 0);
+
+                    gl.uniformMatrix4fv(GPUprogram1.u_mTrans, false, mat.lista());
+                    gl.bindVertexArray(VAO_lezeci_valjak);
+                    gl.uniform3fv(GPUprogram1.u_izvor, [a, b, c]);
+                    gl.drawArrays(gl.TRIANGLE_FAN, 0, 86);
+                    gl.drawArrays(gl.TRIANGLE_FAN, 22, 22);
+                    gl.drawArrays(gl.TRIANGLE_STRIP, 2 * 22, 42);
+                }
+
+                function uspravniValjak() {
+                    mat.identitet();
+                    mat.persp(-2, 2, -2, 2, 3, 20);
+                    mat.postaviKameru(5, 5, 5, 0, 0, 0, 0, 0, 1);
+                    mat.pomakni(0, 0, 2);
+                    mat.rotirajZ(uRadijane(rotiranje));
+
+                    gl.uniformMatrix4fv(GPUprogram1.u_mTrans, false, mat.lista());
+                    gl.bindVertexArray(VAO_uspravni_valjak);
+                    gl.uniform3fv(GPUprogram1.u_izvor, [a, b, c]);
+                    gl.drawArrays(gl.TRIANGLE_FAN, 0, 86);
+                    gl.drawArrays(gl.TRIANGLE_FAN, 22, 22);
+                    gl.drawArrays(gl.TRIANGLE_STRIP, 2 * 22, 42);
+                }
+
+                function prazniValjak() {
+                    mat.identitet();
+                    mat.persp(-2, 2, -2, 2, 3, 20);
+                    mat.postaviKameru(5, 5, 5, 0, 0, 0, 0, 0, 1);
+                    mat.rotirajZ(uRadijane(rotiranje));
+                    mat.pomakni(0, -3.75, 1);
+                    mat.rotirajX(uRadijane(90));
+
+                    gl.uniformMatrix4fv(GPUprogram1.u_mTrans, false, mat.lista());
+                    gl.bindVertexArray(VAO_prazni_valjak);
+                    gl.uniform3fv(GPUprogram1.u_izvor, [a, b, c]);
+                    gl.drawArrays(gl.TRIANGLE_STRIP, 63, 63);
+                }
+
+                function tankiValjak() {
+                    mat.identitet();
+                    mat.persp(-2, 2, -2, 2, 3, 20);
+                    mat.postaviKameru(5, 5, 5, 0, 0, 0, 0, 0, 1);
+                    mat.rotirajZ(uRadijane(rotiranje));
+                    mat.rotirajX(uRadijane(90));
+                    mat.pomakni(0, 1, 2);
+
+                    gl.uniformMatrix4fv(GPUprogram1.u_mTrans, false, mat.lista());
+                    gl.bindVertexArray(VAO_tanki_valjak);
+                    gl.uniform3fv(GPUprogram1.u_izvor, [a, b, c]);
+                    gl.drawArrays(gl.TRIANGLE_FAN, 0, 86);
+                    gl.drawArrays(gl.TRIANGLE_FAN, 22, 22);
+                    gl.drawArrays(gl.TRIANGLE_STRIP, 2 * 22, 42);
+                }
+
+                uspravniValjak();
+                polukugla1();
+                lezeciValjak();
+                polukugla2();
+                prazniValjak();
+                tankiValjak();
+
+                id = requestAnimationFrame(iscrtaj);
+            }
+
+            napuniSpremnike();
+
+            iscrtaj();
+        }
+    </script>
+
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        #version 300 es
+        uniform mat4 u_mTrans;
+        uniform vec3 u_izvor;
+        uniform vec3 u_kameraXYZ;
+        in vec4 a_vrhXYZ;
+        in vec3 a_normala;
+        in vec3 a_boja;
+        out vec3 v_boja;
+        out float svjetlina;
+
+        void main() {
+            vec4 vrh = u_mTrans * a_vrhXYZ;
+            vec3 normala = mat3(u_mTrans) * a_normala;
+
+            vec3 premaIzvoru = normalize(u_izvor - vec3(vrh));
+            svjetlina = dot(premaIzvoru, normala);
+
+            float refleksija = 0.0;
+            if(svjetlina > 0.0) {
+                vec3 premaKameri = normalize(u_kameraXYZ - vec3(vrh));
+                vec3 reflektiranaZraka = reflect(-premaIzvoru, normala);
+                refleksija = max(dot(reflektiranaZraka, premaKameri), 0.0);
+                refleksija = pow(refleksija, 8.0);
+            }
+
+            v_boja = a_boja;
+            svjetlina = svjetlina * 1.0 + refleksija * 0.0005;
+            gl_Position = vrh;
+        }
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        #version 300 es
+        precision highp float;
+        in vec3 v_boja;
+        in float svjetlina;
+        out vec4 bojaFragmenta;
+
+        void main() {
+            bojaFragmenta = vec4(v_boja * svjetlina, 1);
+        }
+    </script>
+</head>
+
+<body>
+    <h1>Podmornica</h1>
+    <div>
+        <canvas id="slika1" height="600" width="800" style="border:5px solid">
+            Vaš preglednik ne podržava HTML5 canvas.
+        </canvas>
+    </div>
+</body>
+
+</html>

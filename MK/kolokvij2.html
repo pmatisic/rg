@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="hr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <style>
+    nav{
+        display: block;
+    }
+    footer{
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        text-align: center;
+    }
+  </style>
+
+  <title>Lambert i refleksija</title>
+  <script src="RG-WebGL.js"></script>
+  <script src="MT3D.js"></script>
+  <script src="./kolokvij2.js"></script>
+
+  <script id="vertex-shader" type="x-shader/x-vertex">
+      #version 300 es
+      in vec4 a_vrhXYZ;
+      in vec3 a_normala;
+
+      uniform mat4 u_mTrans;
+      uniform vec3 u_izvor;
+      uniform vec3 u_kameraXYZ;
+      
+      in vec3 a_boja;
+      out vec3 v_boja;
+      out float svjetlina;
+
+      void main() {
+        //gl_Position = u_mTrans * a_vrhXYZ;
+
+        vec4 vrh = u_mTrans * a_vrhXYZ; // primijeni matricu transformacije
+        vec3 normala = mat3(u_mTrans) * a_normala; // transformacija normale
+
+        // Lambertov zakon
+        vec3 premaIzvoru = normalize(u_izvor - vec3(vrh));
+        svjetlina = dot(premaIzvoru, normala);
+
+        // zakon refleksije
+        float refleksija = 0.0;
+        if(svjetlina > 0.0) {
+          vec3 premaKameri = normalize(u_kameraXYZ - vec3(vrh));
+          vec3 reflektiranaZraka = reflect(-premaIzvoru, normala);
+          refleksija = max(dot(reflektiranaZraka, premaKameri), 0.0);
+          refleksija = pow(refleksija, 8.0);
+        }
+
+        v_boja = a_boja;
+
+        svjetlina = svjetlina * 1.0 + refleksija * 0.0025;
+        gl_Position = vrh;
+      }
+  </script>
+  <script id="fragment-shader" type="x-shader/x-fragment">
+      #version 300 es
+      precision highp float;
+      in vec3 v_boja;
+
+      in float svjetlina;
+      out vec4 bojaPiksela;
+
+      void main() {
+          bojaPiksela = vec4(v_boja * svjetlina, 1); 
+      }
+  </script>
+</head>
+
+<body>
+  <a href="./index.html">Povratak</a>
+  <a href="../index.html">Početna</a>
+
+  <h1>Kolokvij 2</h1>
+  <p>Lampa</p>
+
+  <div>
+    <canvas id="slika1" width="800" height="600" style="border:5px solid black">
+				Vaš preglednik ne podržava HTML5 canvas.
+    </canvas>
+  </div>
+
+  <footer>
+    Marijan Kovač &copy; 2024
+  </footer>
+
+</body>
+</html>
